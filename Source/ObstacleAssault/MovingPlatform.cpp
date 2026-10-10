@@ -1,0 +1,63 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "MovingPlatform.h"
+
+// Sets default values
+AMovingPlatform::AMovingPlatform()
+{
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+}
+
+// Called when the game starts or when spawned
+void AMovingPlatform::BeginPlay()
+{
+	Super::BeginPlay();
+
+	StartLocation = GetActorLocation();
+}
+
+// Called every frame
+void AMovingPlatform::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	MovePlatform(DeltaTime);
+	RotatePlatform(DeltaTime);
+}
+
+void AMovingPlatform::MovePlatform(float DeltaTime)
+{
+	//move the platform
+
+	FVector CurrentLocation = GetActorLocation();
+	CurrentLocation = CurrentLocation + (PlatformVelocity * DeltaTime);
+
+	SetActorLocation(CurrentLocation);
+
+	DistanceMoved = FVector::Dist(StartLocation, CurrentLocation);
+
+	if(DistanceMoved >= MoveDistance)
+	{
+		float OverShoot = DistanceMoved - MoveDistance;
+		FString PlatformName = GetName();
+		UE_LOG(LogTemp, Warning, TEXT("%s overshoot: %f"), *PlatformName, OverShoot);
+
+		FVector MoveDirection = PlatformVelocity.GetSafeNormal();
+		FVector NewStartLocation = StartLocation + (MoveDirection * MoveDistance);
+		SetActorLocation(NewStartLocation);
+		StartLocation = NewStartLocation;
+
+		PlatformVelocity = -PlatformVelocity;
+	}
+}
+
+void AMovingPlatform::RotatePlatform(float DeltaTime)
+{
+	// Rotate the Platform
+	FRotator RotationToAdd = RotationVelocity * DeltaTime;
+	AddActorLocalRotation(RotationToAdd);
+}
+
